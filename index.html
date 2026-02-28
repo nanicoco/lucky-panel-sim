@@ -1,0 +1,354 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>カスタムカードゲーム</title>
+    <style>
+        /* 全体のリセットと基本スタイル */
+        body {
+            font-family: "Helvetica Neue", Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            height: 100vh;
+            display: flex;
+            overflow: hidden;
+            color: #333;
+        }
+
+        /* --- 左ペイン：設定サイドバー --- */
+        .sidebar {
+            width: 150px;
+            background-color: #2c3e50;
+            color: #ecf0f1;
+            padding: 14px 16px;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1);
+            flex-shrink: 0;
+            overflow-y: auto;
+        }
+
+        .sidebar h2 {
+            margin-top: 0;
+            font-size: 1rem;
+            border-bottom: 1px solid #34495e;
+            padding-bottom: 8px;
+            margin-bottom: 14px;
+            letter-spacing: 0.03em;
+        }
+
+        .preset-section-label {
+            font-size: 0.78rem;
+            font-weight: bold;
+            color: #95a5a6;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            margin-bottom: 8px;
+        }
+
+        /* プリセットボタンリスト（1列） */
+        .preset-list {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .preset-btn {
+            background-color: #34495e;
+            color: #ecf0f1;
+            border: 2px solid #4a6278;
+            border-radius: 6px;
+            padding: 9px 12px;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: background 0.2s, border-color 0.2s, transform 0.1s;
+        }
+
+        .preset-btn:hover {
+            background-color: #4a6278;
+            border-color: #6d8ea4;
+        }
+
+        .preset-btn:active {
+            transform: scale(0.97);
+        }
+
+        .preset-btn.active {
+            background-color: #e74c3c;
+            border-color: #e74c3c;
+        }
+
+        .btn-title {
+            font-size: 0.88rem;
+            font-weight: bold;
+        }
+
+        .btn-sub {
+            font-size: 0.75rem;
+            color: #95a5a6;
+            font-weight: normal;
+        }
+
+        .preset-btn.active .btn-sub {
+            color: rgba(255, 255, 255, 0.7);
+        }
+
+        /* --- 右ペイン：メインゲームエリア --- */
+        .main-area {
+            flex-grow: 1;
+            background-color: #f0f2f5;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            overflow-y: auto;
+        }
+
+        .game-header {
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .game-header h1 {
+            margin: 0 0 10px 0;
+            color: #2c3e50;
+            font-size: 1.8rem;
+        }
+
+        .game-header p {
+            margin: 0;
+            color: #7f8c8d;
+        }
+
+        /* グリッドコンテナ */
+        #game-board {
+            display: grid;
+            gap: 12px;
+            padding: 20px;
+            background: #fff;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+        }
+
+        /* カードスタイル */
+        .card {
+            background-color: #fff;
+            border: 2px solid #bdc3c7;
+            border-radius: 8px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 2.5rem;
+            cursor: pointer;
+            user-select: none;
+            width: 70px;
+            height: 70px;
+            transition: transform 0.2s, background-color 0.2s, border-color 0.2s;
+        }
+
+        .card:hover {
+            background-color: #f9f9f9;
+            transform: translateY(-2px);
+            border-color: #95a5a6;
+        }
+
+        /* 空きマスのスタイル */
+        .card.empty {
+            background-color: #ecf0f1;
+            border: 2px dashed #dcdcdc;
+            cursor: default;
+        }
+
+        .card.empty:hover {
+            transform: none;
+            background-color: #ecf0f1;
+        }
+
+        /* 選択中のカード */
+        .card.selected {
+            border-color: #e74c3c;
+            background-color: #fadbd8;
+            transform: scale(1.1);
+            box-shadow: 0 0 15px rgba(231, 76, 60, 0.3);
+            z-index: 10;
+        }
+    </style>
+</head>
+<body>
+
+    <aside class="sidebar">
+        <h2>設定</h2>
+
+        <p class="preset-section-label">グリッド選択</p>
+        <div class="preset-list">
+            <button class="preset-btn active" id="preset-3-4" onclick="applyPreset(3, 4)">
+                <span class="btn-title">縦3 × 横4</span><span class="btn-sub">5種</span>
+            </button>
+            <button class="preset-btn" id="preset-4-4" onclick="applyPreset(4, 4)">
+                <span class="btn-title">縦4 × 横4</span><span class="btn-sub">7種</span>
+            </button>
+            <button class="preset-btn" id="preset-4-5" onclick="applyPreset(4, 5)">
+                <span class="btn-title">縦4 × 横5</span><span class="btn-sub">9種</span>
+            </button>
+            <button class="preset-btn" id="preset-4-6" onclick="applyPreset(4, 6)">
+                <span class="btn-title">縦4 × 横6</span><span class="btn-sub">11種</span>
+            </button>
+        </div>
+    </aside>
+
+    <main class="main-area">
+        <div class="game-header">
+            <h1>Card Game Board</h1>
+            <p>カードをクリックして入れ替えます</p>
+        </div>
+
+        <div id="game-board"></div>
+    </main>
+
+    <script>
+        // 絵文字プール（最大11種類: 4行×6列=24マス → (24-2)/2=11種）
+        const EMOJI_POOL = ['🟥', '🟧', '🟨', '🟩', '🟦', '🟪', '⬛', '⬜', '🟫', '🔶', '🔷'];
+
+        const PRESETS = [
+            { rows: 3, cols: 4 },
+            { rows: 4, cols: 4 },
+            { rows: 4, cols: 5 },
+            { rows: 4, cols: 6 },
+        ];
+
+        let currentRows = 3;
+        let currentCols = 4;
+        let cards = [];
+        let selectedIndex = null;
+
+        // プリセットボタン押下: アクティブ状態を更新してリセット
+        function applyPreset(rows, cols) {
+            currentRows = rows;
+            currentCols = cols;
+
+            PRESETS.forEach(p => {
+                const btn = document.getElementById(`preset-${p.rows}-${p.cols}`);
+                if (btn) btn.classList.toggle('active', p.rows === rows && p.cols === cols);
+            });
+
+            initGame();
+        }
+
+        // ゲーム初期化
+        function initGame() {
+            const totalSlots = currentRows * currentCols;
+            const actualTypes = Math.max(0, Math.min(Math.floor((totalSlots - 2) / 2), EMOJI_POOL.length));
+
+            if (actualTypes < 1) return;
+
+            cards = createArrangement(currentRows, currentCols, actualTypes);
+            selectedIndex = null;
+            renderGrid(currentRows, currentCols);
+        }
+
+        // 配置アルゴリズムの振り分け
+        // - 偶数列         → 横並びペア（行内に連続配置）
+        // - 奇数列 + 偶数行 → 縦並びペア（列ごとに配置）
+        // - 奇数列 + 奇数行 → 横並びペア（行末余り1マスはnull）
+        function createArrangement(rows, cols, actualTypes) {
+            if (cols % 2 === 0) {
+                return createHorizontalArrangement(rows, cols, actualTypes);
+            } else if (rows % 2 === 0) {
+                return createVerticalArrangement(rows, cols, actualTypes);
+            } else {
+                return createHorizontalRowArrangement(rows, cols, actualTypes);
+            }
+        }
+
+        // 偶数列用: ペアを左から右へ連続配置（行をまたがない）
+        function createHorizontalArrangement(rows, cols, actualTypes) {
+            let result = [];
+            for (let i = 0; i < actualTypes; i++) {
+                result.push(EMOJI_POOL[i]);
+                result.push(EMOJI_POOL[i]);
+            }
+            while (result.length < rows * cols) {
+                result.push(null);
+            }
+            return result;
+        }
+
+        // 奇数列・偶数行用: ペアを列内に縦並び配置
+        function createVerticalArrangement(rows, cols, actualTypes) {
+            let grid = Array(rows * cols).fill(null);
+            let emojiIdx = 0;
+            for (let c = 0; c < cols && emojiIdx < actualTypes; c++) {
+                for (let r = 0; r + 1 < rows && emojiIdx < actualTypes; r += 2) {
+                    grid[r * cols + c] = EMOJI_POOL[emojiIdx];
+                    grid[(r + 1) * cols + c] = EMOJI_POOL[emojiIdx];
+                    emojiIdx++;
+                }
+            }
+            return grid;
+        }
+
+        // 奇数列・奇数行用: 行ごとに横並びペア、行末余り1マスはnull
+        function createHorizontalRowArrangement(rows, cols, actualTypes) {
+            let grid = Array(rows * cols).fill(null);
+            let emojiIdx = 0;
+            for (let r = 0; r < rows && emojiIdx < actualTypes; r++) {
+                let c = 0;
+                while (c + 1 < cols && emojiIdx < actualTypes) {
+                    grid[r * cols + c] = EMOJI_POOL[emojiIdx];
+                    grid[r * cols + c + 1] = EMOJI_POOL[emojiIdx];
+                    emojiIdx++;
+                    c += 2;
+                }
+            }
+            return grid;
+        }
+
+        // 画面描画
+        function renderGrid(rows, cols) {
+            const board = document.getElementById('game-board');
+            board.innerHTML = '';
+            board.style.gridTemplateColumns = `repeat(${cols}, 1fr)`;
+
+            cards.forEach((item, index) => {
+                const cardEl = document.createElement('div');
+                if (item === null) {
+                    cardEl.className = 'card empty';
+                } else {
+                    cardEl.className = 'card';
+                    cardEl.innerText = item;
+                }
+                if (index === selectedIndex) {
+                    cardEl.classList.add('selected');
+                }
+                cardEl.onclick = () => handleCardClick(index, rows, cols);
+                board.appendChild(cardEl);
+            });
+        }
+
+        // カードクリック処理
+        function handleCardClick(index, rows, cols) {
+            if (selectedIndex === null) {
+                selectedIndex = index;
+            } else if (selectedIndex === index) {
+                selectedIndex = null;
+            } else {
+                const temp = cards[selectedIndex];
+                cards[selectedIndex] = cards[index];
+                cards[index] = temp;
+                selectedIndex = null;
+            }
+            renderGrid(rows, cols);
+        }
+
+        // 初回読み込み
+        window.onload = () => {
+            initGame();
+        };
+    </script>
+
+</body>
+</html>
