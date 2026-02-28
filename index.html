@@ -297,6 +297,18 @@
 
         // カードクリック処理
         function handleCardClick(index, rows, cols) {
+            if (phase === 'setup') {
+                // セットアップ: 未セットのマスのみ受け付ける
+                if (cards[index] !== null) return;
+                cards[index] = sequence[nextIdx++];
+                if (nextIdx >= sequence.length) {
+                    phase = 'play';
+                }
+                renderGrid(rows, cols);
+                return;
+            }
+
+            // プレイフェーズ: 既存の入れ替えロジック
             if (selectedIndex === null) {
                 selectedIndex = index;
             } else if (selectedIndex === index) {
