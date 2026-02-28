@@ -243,12 +243,10 @@
 
         // ゲーム初期化
         function initGame() {
-            const totalSlots = currentRows * currentCols;
-            const actualTypes = Math.max(0, Math.min(Math.floor((totalSlots - 2) / 2), EMOJI_POOL.length));
-
-            if (actualTypes < 1) return;
-
-            cards = createArrangement(currentRows, currentCols, actualTypes);
+            sequence = generateSequence(currentRows, currentCols);
+            cards = Array(currentRows * currentCols).fill(null);
+            nextIdx = 0;
+            phase = 'setup';
             selectedIndex = null;
             renderGrid(currentRows, currentCols);
         }
