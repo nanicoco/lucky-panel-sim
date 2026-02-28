@@ -269,6 +269,14 @@
         function renderGrid(rows, cols) {
             const board = document.getElementById('game-board');
             board.innerHTML = '';
+        const hint = document.getElementById('game-hint');
+        if (hint) {
+            if (phase === 'setup' && nextIdx < sequence.length) {
+                hint.textContent = `次: ${sequence[nextIdx]}`;
+            } else {
+                hint.textContent = 'カードをクリックして入れ替えます';
+            }
+        }
             board.style.gridTemplateColumns = `repeat(${cols}, 1fr)`;
 
             cards.forEach((item, index) => {
