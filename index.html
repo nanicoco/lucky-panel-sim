@@ -266,64 +266,6 @@
             return seq;
         }
 
-        // 配置アルゴリズムの振り分け
-        // - 偶数列         → 横並びペア（行内に連続配置）
-        // - 奇数列 + 偶数行 → 縦並びペア（列ごとに配置）
-        // - 奇数列 + 奇数行 → 横並びペア（行末余り1マスはnull）
-        function createArrangement(rows, cols, actualTypes) {
-            if (cols % 2 === 0) {
-                return createHorizontalArrangement(rows, cols, actualTypes);
-            } else if (rows % 2 === 0) {
-                return createVerticalArrangement(rows, cols, actualTypes);
-            } else {
-                return createHorizontalRowArrangement(rows, cols, actualTypes);
-            }
-        }
-
-        // 偶数列用: ペアを左から右へ連続配置（行をまたがない）
-        function createHorizontalArrangement(rows, cols, actualTypes) {
-            let result = [];
-            for (let i = 0; i < actualTypes; i++) {
-                result.push(EMOJI_POOL[i]);
-                result.push(EMOJI_POOL[i]);
-            }
-            while (result.length < rows * cols) {
-                result.push(null);
-            }
-            return result;
-        }
-
-        // 奇数列・偶数行用: ペアを列内に縦並び配置
-        function createVerticalArrangement(rows, cols, actualTypes) {
-            let grid = Array(rows * cols).fill(null);
-            let emojiIdx = 0;
-            for (let c = 0; c < cols && emojiIdx < actualTypes; c++) {
-                for (let r = 0; r + 1 < rows && emojiIdx < actualTypes; r += 2) {
-                    grid[r * cols + c] = EMOJI_POOL[emojiIdx];
-                    grid[(r + 1) * cols + c] = EMOJI_POOL[emojiIdx];
-                    emojiIdx++;
-                }
-            }
-            return grid;
-        }
-
-        // 奇数列・奇数行用: 行ごとに横並びペア、行末余り1マスはnull
-        function createHorizontalRowArrangement(rows, cols, actualTypes) {
-            let grid = Array(rows * cols).fill(null);
-            let emojiIdx = 0;
-            for (let r = 0; r < rows && emojiIdx < actualTypes; r++) {
-                let c = 0;
-                while (c + 1 < cols && emojiIdx < actualTypes) {
-                    grid[r * cols + c] = EMOJI_POOL[emojiIdx];
-                    grid[r * cols + c + 1] = EMOJI_POOL[emojiIdx];
-                    emojiIdx++;
-                    c += 2;
-                }
-            }
-            return grid;
-        }
-
-        // 画面描画
         function renderGrid(rows, cols) {
             const board = document.getElementById('game-board');
             board.innerHTML = '';
